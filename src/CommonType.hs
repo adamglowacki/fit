@@ -47,11 +47,6 @@ data Version = Version
   , vNumber4 :: Integer
   } deriving (Eq, Show)
 
-data Project = Project
-  { pName :: String
-  , pDesc :: String
-  } deriving (Eq, Show)
-
 data State
   = StateOpen
   | StateClose

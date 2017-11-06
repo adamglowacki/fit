@@ -3,13 +3,12 @@
 module FileName where
 
 -- TOP DIRECTORY
-issueDir, typeDir, coderDir, severityDir, versionDir, projectDir :: String
+issueDir, typeDir, coderDir, severityDir, versionDir :: String
 issueDir = "issue"
 typeDir = "type"
 coderDir = "coder"
 severityDir = "severity"
 versionDir = "version"
-projectDir = "project"
 
 nextRefFile :: String
 nextRefFile = ".next-ref"
