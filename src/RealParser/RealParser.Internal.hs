@@ -14,7 +14,8 @@ import qualified RealType as REAL
 data FromRawCbs m = FromRawCbs
   { fixIssueId :: REAL.Issue -> RAW.TextData -> m COMMON.Id
   , fixDuplicateIssueId :: REAL.Issue -> REAL.Issue -> COMMON.Id -> m COMMON.Id
-  , fixIssueName :: RAW.Issue -> RAW.TextData -> m T.Text
+  , fixIssueName :: RAW.Issue -> B.ByteString -> m T.Text
+  , fixIssueDesc :: RAW.Issue -> B.ByteString -> m T.Text
   , fixTypeId :: REAL.Type -> RAW.TextData -> m COMMON.Id
   , fixDuplicateTypeId :: REAL.Type -> REAL.Type -> COMMON.Id -> m COMMON.Id
   , fixTypeName :: RAW.Type -> B.ByteString -> m T.Text
@@ -56,7 +57,7 @@ fromRawSystem rawSystem cbs = do
 
 fromRawIssue :: Monad m => RAW.Issue -> M.Map COMMON.Id REAL.Type
              -> FromRawCbs m -> m REAL.Issue
-fromRawIssue typeMap rawIssue cbs = do
+fromRawIssue rawIssue typeMap cbs = do
     name <- getName
     desc <- getDesc
     issueType <- getType
@@ -74,8 +75,10 @@ fromRawIssue typeMap rawIssue cbs = do
              , REAL.iComments = comments
              }
   where
-    getName = undefined
-    getDesc = undefined
+    getName = getText (RAW.iName rawIssue) fixIssueName
+    getDesc = getText (RAW.iDesc rawIssue) fixIssueDesc
+    getText (RAW.CorrectTextData x) _ = return x
+    getText (RAW.IncorrectTextData bytes) getFixFn = getFixFn cbs bytes
     getType = undefined
     getState = undefined
     getDiscoverCommit = undefined
