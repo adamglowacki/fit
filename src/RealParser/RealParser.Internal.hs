@@ -16,6 +16,7 @@ data FromRawCbs m = FromRawCbs
   , fixDuplicateIssueId :: REAL.Issue -> REAL.Issue -> COMMON.Id -> m COMMON.Id
   , fixIssueName :: RAW.Issue -> B.ByteString -> m T.Text
   , fixIssueDesc :: RAW.Issue -> B.ByteString -> m T.Text
+  , fixIssueType :: RAW.Issue -> RAW.TextData -> m COMMON.Ref
   , fixTypeId :: REAL.Type -> RAW.TextData -> m COMMON.Id
   , fixDuplicateTypeId :: REAL.Type -> REAL.Type -> COMMON.Id -> m COMMON.Id
   , fixTypeName :: RAW.Type -> B.ByteString -> m T.Text
@@ -75,11 +76,16 @@ fromRawIssue rawIssue typeMap cbs = do
              , REAL.iComments = comments
              }
   where
-    getName = getText (RAW.iName rawIssue) fixIssueName
-    getDesc = getText (RAW.iDesc rawIssue) fixIssueDesc
-    getText (RAW.CorrectTextData x) _ = return x
-    getText (RAW.IncorrectTextData bytes) getFixFn = getFixFn cbs bytes
-    getType = undefined
+    getName = getText RAW.iName fixIssueName
+    getDesc = getText RAW.iDesc fixIssueDesc
+    getText getField getFixFn =
+      case getField rawIssue of
+        RAW.CorrectTextData x -> return x
+        RAW.IncorrectTextData bytes -> getFixFn cbs rawIssue bytes
+    getType =
+      case RAW.iType rawIssue of
+        RAW.CorrectRef x -> getTypeFromCorrectRef x
+        RAW.IncorrectRef x -> fixIssueType
     getState = undefined
     getDiscoverCommit = undefined
     getFixCommit = undefined
